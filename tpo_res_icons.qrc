@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Add.ico</file>
+        <file>Apply.ico</file>
+        <file>Danger.ico</file>
+        <file>Erase.ico</file>
+        <file>Info.ico</file>
+        <file>Lightning.ico</file>
+        <file>List.ico</file>
+        <file>Modify.ico</file>
+        <file>Minus.ico</file>
+        <file>Plus.ico</file>
+        <file>Retort.png</file>
+    </qresource>
+</RCC>

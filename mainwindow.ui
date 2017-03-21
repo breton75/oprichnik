@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>801</width>
+    <height>713</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>800</width>
+    <height>700</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>10000</width>
+    <height>2000</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>ТПО &quot;Опричник-конфигурация&quot;</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../../../usr/share/icons/fly-astra/64x64/categories/preferences-other.png</normaloff>../../../../usr/share/icons/fly-astra/64x64/categories/preferences-other.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QLineEdit" name="leProjNum">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>150</y>
+      <width>251</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;введите номер проекта (до 16 символов)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="statusTip">
+     <string>номер проекта (символьное поле, до 16 символов)</string>
+    </property>
+    <property name="whatsThis">
+     <string>номер проекта (символьное поле, до 16 символов)</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_1">
+    <property name="geometry">
+     <rect>
+      <x>6</x>
+      <y>155</y>
+      <width>101</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Номер проекта</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>6</x>
+      <y>195</y>
+      <width>111</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Заводской номер</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="leWorkNum">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>190</y>
+      <width>251</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Заводской номер корабля (целое число)</string>
+    </property>
+    <property name="statusTip">
+     <string>Поле для ввода заводского номера корабля (целое число)</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>110</y>
+      <width>31</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Тип</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="leType">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>110</y>
+      <width>251</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>тип корабля (до 64 символов)</string>
+    </property>
+    <property name="statusTip">
+     <string>тип корабля (до 64 символов)</string>
+    </property>
+    <property name="whatsThis">
+     <string>поле для ввода типа корабля (до 64 символов)</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="leDisplacement">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>265</y>
+      <width>251</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Водоизмещение корабля в тоннах</string>
+    </property>
+    <property name="statusTip">
+     <string>Поле для ввода водоизмещения корабля в тоннах</string>
+    </property>
+    <property name="whatsThis">
+     <string>Поле для ввода водоизмещения корабля в тоннах</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>6</x>
+      <y>270</y>
+      <width>111</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Водоизмещение, т</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>80</y>
+      <width>151</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Serif</family>
+      <pointsize>11</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Данные корабля</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pbnTanks">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>340</y>
+      <width>171</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Вызов формы конфигурирования топливных баков</string>
+    </property>
+    <property name="statusTip">
+     <string>Вызов формы конфигурирования топливных баков</string>
+    </property>
+    <property name="whatsThis">
+     <string>Кнопка вызова формы конфигурирования топливных баков</string>
+    </property>
+    <property name="text">
+     <string>Цистерны</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pbnConsumers">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>370</y>
+      <width>171</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Вызов формы конфигурирования списка потребителей топлива</string>
+    </property>
+    <property name="statusTip">
+     <string>Вызов формы конфигурирования списка потребителей топлива</string>
+    </property>
+    <property name="whatsThis">
+     <string>Кнопка вызова формы конфигурирования списка потребителей топлива</string>
+    </property>
+    <property name="text">
+     <string>Потребители</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pbnDensToMass">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>431</y>
+      <width>171</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Вызов формы таблицы пересчета плотности топлива
+в зависимости от температуры</string>
+    </property>
+    <property name="statusTip">
+     <string>Вызов формы таблицы пересчета плотности топлива\nв зависимости от температуры</string>
+    </property>
+    <property name="text">
+     <string>Пересчет плотности</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pbnSave">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>510</y>
+      <width>131</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Сохранить текущую конфигурацию</string>
+    </property>
+    <property name="statusTip">
+     <string>Кнопка сохранения текущей конфигурации</string>
+    </property>
+    <property name="text">
+     <string>Записать в БД</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pbnRestore">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>510</y>
+      <width>171</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Восстановить сохраненные значения</string>
+    </property>
+    <property name="statusTip">
+     <string>Кнопка восстановления сохраненных значений</string>
+    </property>
+    <property name="text">
+     <string>Восстановить из БД</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>6</x>
+      <y>235</y>
+      <width>111</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Бортовой номер</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="leBoardNum">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>230</y>
+      <width>251</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Бортовой номер корабля (целое число)</string>
+    </property>
+    <property name="statusTip">
+     <string>Поле для ввода бортового номера корабля (целое число)</string>
+    </property>
+    <property name="whatsThis">
+     <string>Поле для ввода бортового номера корабля (целое число)</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pbnDicts">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>461</y>
+      <width>171</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Вызов формы редактирования справочников</string>
+    </property>
+    <property name="statusTip">
+     <string>Кнопка вызова формы редактирования справочников</string>
+    </property>
+    <property name="text">
+     <string>Справочники</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>6</x>
+      <y>302</y>
+      <width>111</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Тип топлива</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cbxFuelType">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>300</y>
+      <width>251</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Список выбора топлива корабля</string>
+    </property>
+    <property name="statusTip">
+     <string>Список выбора топлива корабля</string>
+    </property>
+    <property name="currentIndex">
+     <number>1</number>
+    </property>
+    <item>
+     <property name="text">
+      <string>Бензин</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Солярка</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Масло</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Спирт</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QTextEdit" name="teLog">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>10</y>
+      <width>411</width>
+      <height>641</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>0</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+    <property name="html">
+     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:10pt; font-weight:696;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="textInteractionFlags">
+     <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="chbxShowLog">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>580</y>
+      <width>171</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="toolTip">
+     <string>Скрыть / показать протокол</string>
+    </property>
+    <property name="text">
+     <string>Показать протокол</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pbnSaveToFile">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>540</y>
+      <width>131</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Сохранить текущую конфигурацию в файл</string>
+    </property>
+    <property name="statusTip">
+     <string>Кнопка сохранения текущей конфигурации в файл</string>
+    </property>
+    <property name="text">
+     <string>Записать в файл...</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pbnRestoreFromFile">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>540</y>
+      <width>171</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Восстановить данные конфигурации из файла</string>
+    </property>
+    <property name="statusTip">
+     <string>Восстановить данные конфигурации из файла</string>
+    </property>
+    <property name="text">
+     <string>Восстановить из файла...</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cbxStyles">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>610</y>
+      <width>171</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_8">
+    <property name="geometry">
+     <rect>
+      <x>15</x>
+      <y>583</y>
+      <width>41</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Стиль</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pbnLoadStyle">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>580</y>
+      <width>121</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Загрузить...</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>24</y>
+      <width>61</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Проект</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cbxProject">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>20</y>
+      <width>161</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pbnProjects">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>20</y>
+      <width>111</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Проекты...</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pbnNetParams">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>400</y>
+      <width>171</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Сетевые параметры</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>801</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
