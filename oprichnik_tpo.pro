@@ -30,7 +30,8 @@ HEADERS  += mainwindow.h \
     universaldelegate.h \
     consumers_edit.h \
     fueltables_edit.h \
-    net_edit.h
+    net_edit.h \
+    u_log.h
 
 FORMS    += mainwindow.ui \
     ref_edit.ui \

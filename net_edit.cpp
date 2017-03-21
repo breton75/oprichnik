@@ -2,7 +2,7 @@
 #include "ui_net_edit.h"
 
 #include <QSplitter>
-#include "../common/u_log.h"
+#include "u_log.h"
 
 NetEdit::NetEdit(QWidget *parent) :
     QMainWindow(parent),
