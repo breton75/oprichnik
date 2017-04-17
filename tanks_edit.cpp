@@ -195,7 +195,7 @@ TanksEdit::TanksEdit(QWidget *parent) :
     //fix("Форма цистерн - сплиттеры есть, создаем справочники");
     // график - будет позже
     ui->frame_2->setVisible(false);
-
+    ui->pbnLoadTanksFromFile->setVisible(false);
 
     //---------------------- сетка списка цистерн ---------------------------
     currentTankId = -1;
@@ -452,7 +452,7 @@ void TanksEdit::updateTanksList()
     tvTanksModel->clear();
     tvTanksModel->setColumnCount(5);
     tvTanksModel->setRowCount(n);
-    tvTanksModel->setHorizontalHeaderLabels(QStringList() << "ИД" << "Цистерна" << "Тип датчика" << "Наименование" << "Состояние");
+    tvTanksModel->setHorizontalHeaderLabels(QStringList() << "ИД" << "Тип цистерны" << "Тип датчика" << "Наименование" << "Состояние");
     fix("Форма цистерн - задали параметры сетки, добавляем");
     if(tvMeasuresModel) tvMeasuresModel->clear();
     currentTankId = -1;

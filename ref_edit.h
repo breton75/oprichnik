@@ -31,6 +31,9 @@ private slots:
     void refContentCurrentChanged(QModelIndex currIdx, QModelIndex prevIdx);// сменен текущий элемент справочника (сдвинут курсор по таблице)
     void refContentItemChanged(QStandardItem *item);// изменен (отредактирован) текущий элемент справочника
 
+//public slots:
+//    void closeThis();
+
 private:
     Ui::RefEdit *ui;
     QSqlQuery* query;
@@ -50,6 +53,7 @@ protected:
 signals:
 //    void pleaseCheckButtons();
     void tableChanged(QString tableName);
+//    void allDone();
 };
 
 #endif // REF_EDIT_H

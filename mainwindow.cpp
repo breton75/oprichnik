@@ -18,14 +18,15 @@
 //#include "childwin.h"
 
 #if defined(Q_OS_WIN)
-    #define qUsername QString::fromLocal8Bit (qgetenv ("USERNAME").constData ()).toUtf8 ()
+    //#define qUsername QString::fromLocal8Bit (qgetenv ("USERNAME").constData ()).toUtf8 ()
+    #define qUsername QString::fromLocal8Bit (qgetenv ("USERNAME").constData ())
 #elif defined(Q_OS_UNIX)
     #define qUsername qgetenv("USER").constData ()
 #endif
 
 
 //------------------------------------------------------
-// тестовое сообщение
+// тестовое сообщение - отладка в run-time
 void MainWindow::fix(QString msg)
 {
     return;
@@ -45,9 +46,7 @@ MainWindow::MainWindow(QWidget *parent) :
     fix("Старт ТПО");
     ui->setupUi(this);
     //setWindowModality(Qt::WindowModal);
-    setWindowIcon(QIcon("./Config.png"));//Anchor.png"));
-//    QSize isz = QIcon("./Config.png").;
-//    qDebug() << "Icon size: " << isz.width() << "x" << isz.height();
+    setWindowIcon(QIcon(":/Config.png"));
 
     ui->mainToolBar->setVisible(false);
     ui->menuBar->setVisible(false);
@@ -96,6 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //re->query = &query;
     re->hide();
     connect(re, SIGNAL(tableChanged(QString)), this, SLOT(refTableChanged(QString)));
+    //connect(this, SIGNAL(allDone()), re, SLOT(closeThis()));
 
     fix("Справочники готовы, создаем цистерны");
     te = new TanksEdit();//this);
@@ -129,23 +129,30 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     ne->close();
-    ne->deleteLater();
+    //ne->deleteLater();
+    ne->~NetEdit();
 
     disconnect(re, SIGNAL(tableChanged(QString)), fe, SLOT(refTableChanged(QString)));
     fe->close();
-    fe->deleteLater();
+    //fe->deleteLater();
+    fe->~FuelTables();
 
     disconnect(re, SIGNAL(tableChanged(QString)), ce, SLOT(refTableChanged(QString)));
     ce->close();
-    ce->deleteLater();
+    //ce->deleteLater();
+    ce->~ConsumersEdit();
 
     disconnect(re, SIGNAL(tableChanged(QString)), te, SLOT(refTableChanged(QString)));
     te->close();
-    te->deleteLater();
+    //te->deleteLater();
+    te->~TanksEdit();
 
     disconnect(re, SIGNAL(tableChanged(QString)), this, SLOT(refTableChanged(QString)));
     re->close();
-    re->deleteLater();
+    //emit allDone();
+    //re->window()->close();
+    //re->deleteLater();
+    //re->~RefEdit();
 
     closeLog();
     query->finish();
@@ -243,20 +250,22 @@ void MainWindow::setDB_ok(bool newOK)
 }
 
 // очистка таблиц, с переустановкой счетчиков
-// список проектов - ???
 void MainWindow::clearDB()
 {
     // очистка БД
+    // таблицы без последовательностей
     if(query->exec("delete from ship_def;")) qDebug() << "Таблица ship_def очищена, удалено записей: " << query->numRowsAffected();
     else qDebug() << "Ошибка очистки таблицы ship_def: " << query->lastError().text();
     if(query->exec("delete from consumers_spend;")) qDebug() << "Таблица consumers_spend очищена, удалено записей: " << query->numRowsAffected();
     else qDebug() << "Ошибка очистки таблицы consumers_spend: " << query->lastError().text();
 
+
     // итератор в стиле С++
     QList<QString> tblListCPP;
-    tblListCPP << "consumers" << "consumer_types" << "tanks_fuel_rest" << "tank_measures" << "fuel_measures"
-                << "check_points_rest" << "check_points" << "fuel_density" << "tanks" << "tank_types"
-                << "meter_types" << "run_mode_types" << "fuel_types" << "sensor_types";
+    tblListCPP << "sensors" << "consumers" << "consumer_types"
+               << "tanks_fuel_rest" << "tank_measures" << "fuel_measures" << "check_points_rest" << "check_points"
+               << "fuel_density" << "tanks" << "tank_types" << "meter_types" << "run_mode_types"
+               << "fuel_types" << "sensor_types";
     foreach (QString tblName, tblListCPP) {
         if(query->exec(tr("delete from %1;").arg(tblName))) {
             qDebug() << "Таблица " << tblName <<  " очищена, удалено записей: " << query->numRowsAffected();
@@ -270,9 +279,10 @@ void MainWindow::clearDB()
 
     // итератор в стиле STL
     QVector<QString> vecTblList;
-    vecTblList << "consumers" << "consumer_types" << "tanks_fuel_rest" << "tank_measures" << "fuel_measures"
-           << "check_points_rest" << "check_points" << "fuel_density" << "tanks" << "tank_types"
-           << "meter_types" << "run_mode_types" << "fuel_types" << "sensor_types";
+    vecTblList << "ship_def" << "consumers_spend" << "sensors" << "consumers" << "consumer_types"
+               << "tanks_fuel_rest" << "tank_measures" << "fuel_measures" << "check_points_rest" << "check_points"
+               << "fuel_density" << "tanks" << "tank_types" << "meter_types" << "run_mode_types"
+               << "fuel_types" << "sensor_types";
     QVector<QString>::iterator vecTbl;// = vecTblList.begin();
     for(vecTbl = vecTblList.begin(); vecTbl != vecTblList.end(); ++vecTbl) {
         QString tblName = *vecTbl;
@@ -288,9 +298,10 @@ void MainWindow::clearDB()
 
     // итератор в стиле Ява
     QList<QString> tblListJava;
-    tblListJava << "consumers" << "consumer_types" << "tanks_fuel_rest" << "tank_measures" << "fuel_measures"
-                << "check_points_rest" << "check_points" << "fuel_density" << "tanks" << "tank_types"
-                << "meter_types" << "run_mode_types" << "fuel_types" << "sensor_types";
+    tblListJava << "ship_def" << "consumers_spend" << "sensors" << "consumers" << "consumer_types"
+                << "tanks_fuel_rest" << "tank_measures" << "fuel_measures" << "check_points_rest" << "check_points"
+                << "fuel_density" << "tanks" << "tank_types" << "meter_types" << "run_mode_types"
+                << "fuel_types" << "sensor_types";
 
     QListIterator<QString> tbl(tblListJava);
     while (tbl.hasNext()) {
@@ -397,26 +408,80 @@ void MainWindow::setSequenceValues()
 {
     // select count(*) as rec_count, coalesce(max(id), 0) as max_id from check_points;
     // query->exec(tr("select setval('%1_id_seq', %2, false);").arg(tblName).arg(c));
-    QList<QString> tblListCPP;
-    tblListCPP << "consumers" << "consumer_types" << "tanks_fuel_rest" << "fuel_measures"
-                << "check_points_rest" << "check_points" << "fuel_density" << "tanks" << "tank_types"
-                << "meter_types" << "run_mode_types" << "fuel_types" << "sensor_types";
-    foreach (QString tblName, tblListCPP) {
-        if(query->exec(tr("select count(*) as rec_count, coalesce(max(id), 0) as max_id from %1;").arg(tblName))) {
-            query->next();
-            int n = query->value("rec_count").toInt();
-            if(n > 0) {
-                int c = query->value("max_id").toInt();
-                query->finish();
-                if(query->exec(tr("select setval('%1_id_seq', %2, true);").arg(tblName).arg(c))) {
-                    query->finish();
-                    qDebug() << "Таблица " << tblName <<  ", счетчик установлен в значение: " << c;
+
+//    QList<QString> tblListCPP;
+//    tblListCPP << "consumers" << "consumer_types" << "tanks_fuel_rest" << "fuel_measures"
+//                << "check_points_rest" << "check_points" << "fuel_density" << "tanks" << "tank_types"
+//                << "meter_types" << "run_mode_types" << "fuel_types" << "sensor_types";
+//    foreach (QString tblName, tblListCPP) {
+//        if(query->exec(tr("select count(*) as rec_count, coalesce(max(id), 0) as max_id from %1;").arg(tblName))) {
+//            query->next();
+//            int n = query->value("rec_count").toInt();
+//            if(n > 0) {
+//                int c = query->value("max_id").toInt();
+//                query->finish();
+//                if(query->exec(tr("select setval('%1_id_seq', %2, true);").arg(tblName).arg(c))) {
+//                    query->finish();
+//                    qDebug() << "Таблица " << tblName <<  ", счетчик установлен в значение: " << c;
+//                }
+//                else qDebug() << "Ошибка поправки счетчика таблицы " << tblName << ": " << query->lastError().text();
+//            }
+//        }
+//        else qDebug() << "Ошибка попытки поправки счетчика таблицы " << tblName << ": " << query->lastError().text();
+//    }
+    query->finish();
+    if(query->exec("SELECT table_name, column_name, column_default FROM information_schema.columns WHERE table_schema = 'public' AND column_default like 'nextval%';")) {
+        QSqlQuery* qry = new QSqlQuery();
+        QString tableName, fieldName, seq_str, seqName;
+        QStringList qryParts;
+        while(query->next()) {
+            tableName = query->value("table_name").toString();
+            fieldName = query->value("column_name").toString();
+            seq_str = query->value("column_default").toString();
+            qryParts = seq_str.split("'");
+            seqName = qryParts.at(1);
+            //qDebug() << "next sequence: " << seqName << ", table: " << tableName << ", field: " << fieldName;
+            //if(qry->exec(tr("with a as (SELECT MAX(%1) as max_id FROM %2) select a.max_id, ts.last_value, ts.increment_by FROM a, %3 ts")
+            //                .arg(fieldName)
+            //                .arg(tableName)
+            //                .arg(seqName))) {
+            QString qrySt = tr("with a as (SELECT MAX(%1) as max_id FROM %2) select a.max_id, ts.last_value, ts.increment_by FROM a, %3 ts;")
+                    .arg(fieldName)
+                    .arg(tableName)
+                    .arg(seqName);
+            //qDebug() << "sequence search query: " << qrySt;
+
+            if(qry->exec(qrySt)) {
+                qry->first();
+                int max_id = qry->value("max_id").toInt();
+                int last_val = qry->value("last_value").toInt();
+                //qDebug() << "sequence: " << seqName << ", last value: " << last_val << ", max ID: " << max_id;
+                if(max_id > last_val) {
+                    qry->finish();
+                    qrySt = tr("select setval('%1', %2, true) as last_value;").arg(seqName).arg(max_id);
+                    //qDebug() << "sequence update query: " << qrySt;
+                    if(qry->exec(qrySt)) {
+                        qry->first();
+                        last_val = qry->value("last_value").toInt();
+                        logMsg(msgSuccess, tr("Последовательность %1 обновлена, last_value: %2").arg(seqName).arg(last_val), ui->teLog);
+                        //qDebug() << "Последовательность " << seqName << " обновлена, last_value: " << last_val;
+                    } else {
+                        // error sequence update
+                        logMsg(msgError, tr("Ошибка обновления последовательности %1:<br>%2").arg(seqName).arg(qry->lastError().text()), ui->teLog);
+                        qDebug() << "Ошибка обновления последовательности " << seqName << ":";
+                        qDebug() << qry->lastError().text();
+                    }
+                    qry->finish();
                 }
-                else qDebug() << "Ошибка поправки счетчика таблицы " << tblName << ": " << query->lastError().text();
+            } else {
+                // error sequence search
+                logMsg(msgError, tr("Ошибка определения последовательности %1:<br>%2").arg(seqName).arg(qry->lastError().text()), ui->teLog);
+                qDebug() << "Ошибка определения последовательности " << seqName << ":";
+                qDebug() << qry->lastError().text();
             }
         }
-        else qDebug() << "Ошибка попытки поправки счетчика таблицы " << tblName << ": " << query->lastError().text();
     }
+    query->finish();
 }
 
 void MainWindow::updateProjectsList()
@@ -488,9 +553,14 @@ void MainWindow::updateFuelTypes()
     int cbxCurrent = ui->cbxFuelType->currentIndex();
     ui->cbxFuelType->clear();
     while (query->next()) {
-        ui->cbxFuelType->addItem(query->value("name").toString());
+        int idVal = query->value("id").toInt();
+        ui->cbxFuelType->addItem(query->value("name").toString(), idVal);// , query->value("id").toInt()); // <- так не берет, нужна переменная
     }
     query->finish();
+
+//    for (int i = 0; i < ui->cbxFuelType->count(); ++i) {
+//        qDebug() << "fuel types cbx, item " << i << " data - user role: " << ui->cbxFuelType->itemData(i) << ", display role: " << ui->cbxFuelType->itemData(i, Qt::DisplayRole);
+//    }
     if((cbxCurrent >= 0) & (cbxCurrent < ui->cbxFuelType->count()))
         ui->cbxFuelType->setCurrentIndex(cbxCurrent);
     else
@@ -547,7 +617,14 @@ void MainWindow::showCurrentData() // вывод текущих данных
     ui->leType->setText(fShipType);
     ui->leBoardNum->setText(tr("%1").arg(fBoardNum));
     ui->leDisplacement->setText(tr("%1").arg(fDisplacement));
-    ui->cbxFuelType->setCurrentIndex(fFuelType); ;//currentIndex() = fFuelType;
+    //ui->cbxFuelType->setCurrentIndex(fFuelType);
+    for (int i = 0; i <ui->cbxFuelType->count(); ++i) {
+        if(ui->cbxFuelType->itemData(i) == fFuelType) {
+            ui->cbxFuelType->setCurrentIndex(i);
+            break;
+        }
+    }
+
     fFullUpdate = false;
     checkCorrectData();
 }
@@ -679,6 +756,11 @@ void MainWindow::saveDataToFile()
         //ba.append(QByteArray("Количество потребителей: ").append(query->value("consumer_count").toString()).append("\r\n"));
         ba.append(QByteArray("Количество потребителей: ").append(query->value("consumer_count").toByteArray()).append("\r\n"));
     }
+    if(query->exec(tr("select count(*) as sensor_count from sensors where project_id = %1;").arg(currProjId))) {
+        query->first();
+        //ba.append(QByteArray("Количество датчиков: ").append(query->value("sensor_count").toString()).append("\r\n"));
+        ba.append(QByteArray("Количество датчиков: ").append(query->value("sensor_count").toByteArray()).append("\r\n"));
+    }
     ba.append(QByteArray("\r\n"));
 
     // справочники
@@ -697,10 +779,7 @@ void MainWindow::saveDataToFile()
     } else {
         ba.append(QByteArray("[Типы цистерн]\r\n"));
         while (query->next()) {
-            // разобраться с индексами!!! +1 / 0
-            //i++;
             idxTankTypes.append(query->value("id").toInt());
-            //ba.append(QByteArray().append(tr("%1=%2 (%3)\r\n").arg(i).arg(query->value("name").toString()).arg(query->value("description").toString())));
             ba.append(QByteArray().append(tr("%1=%2 (%3)\r\n").arg(++i).arg(query->value("name").toString()).arg(query->value("description").toString())));
         }
         query->finish();
@@ -823,7 +902,10 @@ void MainWindow::saveDataToFile()
         ba.append(QByteArray("[Цистерны]\r\n"));
         while (query->next()) {
             i++;
-            ba.append(QByteArray().append(tr("[Цистерна %1: %2]\r\n").arg(i).arg(query->value("name").toString())));
+            //qDebug() << "tank " << i << "-Latin1: " << QString(query->value("name").toString().toLatin1())
+            //         << ", Local8Bit: " << QString(query->value("name").toString().toLocal8Bit())
+            //         << ", string:" << QString(query->value("name").toString());
+            ba.append(QByteArray().append(tr("[Цистерна %1: %2]\r\n").arg(i).arg(QString(query->value("name").toString().toLocal8Bit()))));
             n = idxTankTypes.indexOf(query->value("tank_type").toInt()) + 1;
             ba.append(QByteArray().append(tr("Тип цистерны: %1\r\n").arg(n)));
             n = idxSensorTypes.indexOf(query->value("sensor_type").toInt()) + 1;
@@ -912,7 +994,48 @@ void MainWindow::saveDataToFile()
         }
     }
 
-
+    // датчики (измерители)
+    // пока без таблиц пересчета
+    // SELECT id, sensor_type, coalesce(tank_id, -1) as tank_id, coalesce(consumer_id, -1) as consumer_id, net_address, net_idx, data_type, lo_val, high_val FROM sensors WHERE project_id=%1 ORDER BY id;
+    if(!query->exec(tr("select * from sensors where project_id = %1 order by 1;").arg(currProjId))) {
+        logMsg(msgError, tr("Ошибка получения списка датчиков:<br>%1").arg(query->lastError().text()), ui->teLog);
+        qDebug() << "Ошибка получения  списка датчиков:";
+        qDebug() << query->lastError().text();
+    } else { // не готово - закрываем до лучших времен
+        /*
+        // SELECT id, sensor_type, tank_id, consumer_id, net_address, net_idx, data_type, lo_val, high_val FROM sensors;
+        i = 0;
+        ba.append(QByteArray("[Датчики]\r\n"));
+        while (query->next()) {
+            i++;
+            ba.append(QByteArray().append(tr("[Датчик %1]\r\n").arg(i)));
+            n = idxSensorTypes.indexOf(query->value("sensor_type").toInt()) + 1;
+            ba.append(QByteArray().append(tr("Тип датчика: %1\r\n").arg(n)));
+            if(query->value("consumer_id").isNull()) { // датчик на танке
+                n = query->value("tank_id").toInt();
+                ba.append(QByteArray().append(tr("Цистерна: %1\r\n").arg(n)));
+            } else { // датчик на потребителе
+                n = query->value("consumer_id").toInt();
+                ba.append(QByteArray().append(tr("Потребитель: %1\r\n").arg(n)));
+            }
+            n = query->value("net_address").toInt();
+            ba.append(QByteArray().append(tr("Сетевой адрес: %1\r\n").arg(n)));
+            n = query->value("net_idx").toInt();
+            ba.append(QByteArray().append(tr("Индекс датчика: %1\r\n").arg(n)));
+            n = query->value("data_type").toInt();
+            ba.append(QByteArray().append(tr("Тип данных: %1\r\n").arg(n)));
+            QString val = QString::number(query->value("lo_val").toFloat(), 'f', 3);
+            ba.append(QByteArray().append(tr("Мин.значение: %1\r\n").arg(val)));
+            val = QString::number(query->value("high_val").toFloat(), 'f', 3);
+            ba.append(QByteArray().append(tr("Макс.значение: %1\r\n").arg(val)));
+            // таблица пересчета по датчику - аналогично режимам работы по потребителю, но будет позжзе
+            qryData->finish();
+            ba.append(QByteArray("\r\n"));
+        }
+        query->finish();
+        //ba.append(QByteArray("\r\n"));
+        */
+    }
 
     // без перекодировки
     //fConfig.write(ba);
@@ -972,9 +1095,9 @@ void MainWindow::restoreDataFromFile()
     int currLine = 0;
     QString st, st1;
     QString qry;
-    QStringList partHeaders = QStringList() << "Конфигурация" << "Типы" << "Цистерны" << "Потребители" << "Пересчет";
+    QStringList partHeaders = QStringList() << "Конфигурация" << "Типы" << "Цистерны" << "Потребители" << "Пересчет";// датчики - будут позже
     QStringList confMainData = QStringList() << "Тип" << "Номер проекта" << "Заводской номер" << "Бортовой номер" << "Водоизмещение" << "Тип топлива" << "Количество цистерн" << "Количество потребителей";
-    QStringList referenceTypes = QStringList() << "цистерн" << "измерителей" << "потребителей" << "режимов" << "топлива" << "событий";
+    QStringList referenceTypes = QStringList() << "цистерн" << "измерителей" << "потребителей" << "режимов" << "топлива" << "событий" << "данных";
     QStringList stParts;
 
     QString projType = "";
@@ -996,7 +1119,7 @@ void MainWindow::restoreDataFromFile()
     if(!skipWriteToDB) {
         // очистка БД
         // однократно - заполнение БД из файла
-        //clearDB();
+        clearDB();
     }
 
     // основная конфигурация
@@ -1088,6 +1211,9 @@ void MainWindow::restoreDataFromFile()
                     break;
                 case 5:
                     refTableName = "event_types";
+                    break;
+                case 6:
+                    refTableName = "data_types";
                     break;
                 default:
                     refTableName = "";
@@ -1465,7 +1591,7 @@ void MainWindow::on_pbnConsumers_clicked()
     ui->statusBar->showMessage("Список потребителей - будет позже", 1000);
 }
 
-void MainWindow::on_pbnNetParams_clicked()
+void MainWindow::on_pbnSensors_clicked()
 {
     ne->show();
 }
@@ -1501,6 +1627,10 @@ void MainWindow::on_pbnDensToMass_clicked()
 
 void MainWindow::on_pbnDicts_clicked()
 {
+    if(QApplication::keyboardModifiers() & Qt::ShiftModifier) {
+        setSequenceValues();
+        return;
+    }
     re->show();
 }
 
@@ -1513,8 +1643,8 @@ void MainWindow::on_pbnSave_clicked()
     }
     QString qry;
     if (fConfTableRecCount > 0) {
-        qry = "UPDATE ship_def SET ship_board_num=:ship_board_num, displacement=:displacement, fuel_type=:fuel_type, "
-              "ship_project=:ship_project, ship_man_number=:ship_man_number, ship_type=:ship_type;";
+        qry = tr("UPDATE ship_def SET ship_board_num=:ship_board_num, displacement=:displacement, fuel_type=:fuel_type, "
+              "ship_project=:ship_project, ship_man_number=:ship_man_number, ship_type=:ship_type where project_id = :project_id;").arg(fProjectId);
     } else {
         qry = "INSERT INTO public.ship_def(ship_board_num, displacement, fuel_type, tanks_count, consumers_count, ship_project, ship_man_number, ship_type)"
               "VALUES (:ship_board_num, :displacement, :fuel_type, 0, 0, :ship_project, :ship_man_number, :ship_type);";
@@ -1577,11 +1707,11 @@ void MainWindow::on_chbxShowLog_clicked(bool checked)
     ui->teLog->setVisible(checked);
     if (checked) {
         setMaximumSize(2000, 10000);
-        setMinimumSize(800, 630);
+        setMinimumSize(800, 680);
 //        ui->teLog->geometry().setHeight(height() - 40);
     } else {
-        setMinimumSize(380, 630);
-        setMaximumSize(380, 630);
+        setMinimumSize(380, 680);
+        setMaximumSize(380, 680);
     }
 }
 
@@ -1599,6 +1729,7 @@ void MainWindow::on_pbnRestoreFromFile_clicked()
     else restoreDataFromFile();
 }
 
+// стили формы - предопределенные в ОС
 void MainWindow::slotStyleChange(const QString &str)
 {
     QStyle* pstyle = QStyleFactory::create(str);
@@ -1608,14 +1739,10 @@ void MainWindow::slotStyleChange(const QString &str)
     fe->userStyleChanged();
 }
 
+// стили формы - из файла .qss (аналогично html-ному .css)
 void MainWindow::on_pbnLoadStyle_clicked()
 {
 //    if(QApplication::keyboardModifiers() && Qt::ShiftModifier) {
-//        ChildWin* cwn = new ChildWin(this);
-//        cwn->setWindowIcon(QIcon(":/Retort.png"));//QMessageBox::Information);
-//        cwn->show();
-//        return;
-//    }
     QString strFilter;
     QString loadFileName = QFileDialog::getOpenFileName(0,
                                                         tr("Загрузить стиль из файла"), // заголовок окна
@@ -1630,8 +1757,10 @@ void MainWindow::on_pbnLoadStyle_clicked()
     //QApplication::setStyleSheet(strCSS);
     //QApplication* qApp;// = QApplication::self();//QCoreApplication::self;
     this->setStyleSheet(strCSS);
-    te->setStyleSheet(strCSS);//userStyleChanged();
-    fe->setStyleSheet(strCSS);//userStyleChanged();
+    te->setStyleSheet(strCSS);
+    re->setStyleSheet(strCSS);
+    ce->setStyleSheet(strCSS);
+    fe->setStyleSheet(strCSS);
+    ne->setStyleSheet(strCSS);
 }
-
 

@@ -104,7 +104,7 @@ private slots:
     // вызов подчиненных форм
     void on_pbnTanks_clicked();
     void on_pbnConsumers_clicked();
-    void on_pbnNetParams_clicked();
+    void on_pbnSensors_clicked();
     void on_pbnDensToMass_clicked();
     void on_pbnDicts_clicked();
     // сохранение данных в БД
@@ -118,6 +118,10 @@ private slots:
 
     void slotStyleChange(const QString& str);
     void on_pbnLoadStyle_clicked();
+
+signals:
+    void allDone();
+
 };
 
 #endif // MAINWINDOW_H

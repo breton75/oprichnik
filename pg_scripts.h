@@ -19,6 +19,21 @@ const QString qryCreateDB = "CREATE DATABASE drain_db"
 const QString qryCreateDB_SetComment =  " COMMENT ON DATABASE drain_db IS 'БД по проекту Водосток для ПО АРМ Опричник для всех кораблей';";
 
 // Таблицы-справочники
+
+// Типы данных
+const QString qryCreateTable_data_types = "CREATE TABLE data_types"
+       " ("
+       " id smallserial PRIMARY KEY,"
+       " name character varying(64),"
+       " description character varying(100)"
+       " )"
+       " WITHOUT OIDS;"
+       " ALTER TABLE data_types OWNER TO postgres;"
+       " COMMENT ON TABLE data_types IS 'Типы данных';"
+       " COMMENT ON COLUMN data_types.id IS 'ИД типа данных';"
+       " COMMENT ON COLUMN data_types.name IS 'Наименование типа данных';"
+       " COMMENT ON COLUMN data_types.description IS 'Описание типа данных';";
+
 // Типы топлива
 const QString qryCreateTable_fuel_types = "CREATE TABLE fuel_types"
        " ("
@@ -196,18 +211,17 @@ const QString qryCreateTable_consumers = "CREATE TABLE consumers"
         " COMMENT ON COLUMN consumers.meter_type IS 'Тип измерителя';"
         " COMMENT ON COLUMN consumers.name IS 'Наименование потребителя';";
 
-//*********************************
 // Список датчиков
 const QString qryCreateTable_sensors= "CREATE TABLE sensors"
         " ("
         " id smallserial PRIMARY KEY,"
         " project_id smallint REFERENCES projects(id) MATCH FULL ON UPDATE CASCADE ON DELETE RESTRICT,"
         " sensor_type smallint REFERENCES sensor_types(id) MATCH FULL ON UPDATE CASCADE ON DELETE RESTRICT,"
+        " data_type smallint REFERENCES data_types(id) MATCH FULL ON UPDATE CASCADE ON DELETE RESTRICT,"
         " tank_id smallint REFERENCES tanks(id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT,"
         " consumer_id smallint REFERENCES consumers(id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT,"
         " net_address smallint,"
         " net_idx smallint,"
-        " data_type smallint,"
         " lo_val double precision,"
         " high_val double precision"
         " )"
@@ -217,11 +231,11 @@ const QString qryCreateTable_sensors= "CREATE TABLE sensors"
         " COMMENT ON COLUMN sensors.id IS 'ИД датчика';"
         " COMMENT ON COLUMN sensors.project_id IS 'Привязка к проекту';"
         " COMMENT ON COLUMN sensors.sensor_type IS 'Тип датчика';"
+        " COMMENT ON COLUMN sensors.data_type IS 'Тип измеряемых данных';"
         " COMMENT ON COLUMN sensors.tank_id IS 'ИД цистерны';"
         " COMMENT ON COLUMN sensors.consumer_id IS 'ИД потребителя';"
         " COMMENT ON COLUMN sensors.net_address IS 'Сетевой ИД (адрес) датчика';"
         " COMMENT ON COLUMN sensors.net_idx IS 'Индекс датчика на ИП';"
-        " COMMENT ON COLUMN sensors.data_type IS 'Тип измеряемых данных';"
         " COMMENT ON COLUMN sensors.high_val IS 'Максимальное значение';"
         ;
 
@@ -385,6 +399,7 @@ const QString qryCreateTable_system_log = "CREATE TABLE system_log"
 // список названий таблиц и скриптов для их создания
 const int tScript = 0;//
 const QString tablesList[][2] = {
+    {"data_types", qryCreateTable_data_types},
     {"fuel_types", qryCreateTable_fuel_types},
     {"sensor_types", qryCreateTable_sensor_types},
     {"consumer_types", qryCreateTable_consumer_types},

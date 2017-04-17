@@ -551,7 +551,7 @@ p, li { white-space: pre-wrap; }
      <string>Проекты...</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pbnNetParams">
+   <widget class="QPushButton" name="pbnSensors">
     <property name="geometry">
      <rect>
       <x>125</x>
@@ -561,7 +561,7 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="text">
-     <string>Сетевые параметры</string>
+     <string>Измерители</string>
     </property>
    </widget>
   </widget>

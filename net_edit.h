@@ -41,11 +41,30 @@ private:
     QList<int> cbxConsumers;// содержание справочника  потребителей
     QList<int> cbxTanks;// содержание справочника  потребителей
     QList<int> cbxSensorTypes;// содержание справочника типов датчиков
+    QList<int> cbxDataTypes;// содержание справочника типов данных
 
     int currentProjectId;
     int currentSensorId;
     //QModelIndex currentSensorsListRow;
-    int sensors_record_state_idx;// индекс столбца состояния записи
+    //int sensors_record_state_idx;// индекс столбца состояния записи
+    int colIdx_RecordState;
+    int colIdx_SensorId;
+    int colIdx_RecNo;
+    int colIdx_SensorName;
+    int colIdx_SensorTypeId;
+    int colIdx_SensorTypeName;
+    int colIdx_SensorTypeDesc;
+    int colIdx_TankId;
+    int colIdx_TankName;
+    int colIdx_ConsumerId;
+    int colIdx_ConsumerName;
+    int colIdx_NetAddress;
+    int colIdx_NetIdx;
+    int colIdx_DataTypeId;
+    int colIdx_DataTypeName;
+    int colIdx_LoVal;
+    int colIdx_HiVal;
+
     QString currentSensorName;
 
     bool fSensorParamsChanged;
@@ -78,6 +97,7 @@ private:
 
 
     // обновления справочников и списков
+    void updateDataTypes();
     void updateSensorTypes();
     void updateTanksList();
     void updateConsumersList();

@@ -16,7 +16,8 @@ ConsumersEdit::ConsumersEdit(QWidget *parent) :
     // ну, не выводится иконка в дочернем окне в линуксе...
 //    this->window()->setAttribute(Qt::WA_SetWindowIcon, true);
 //    this->setWindowIcon(QIcon("Smile.ico"));
-    this->setWindowIcon(QIcon("gimp.png"));
+    //this->setWindowIcon(QIcon("gimp.png"));
+    setWindowIcon(QIcon(":/Consumer.png"));
 ////    this->setWindowFlags();
 //    this->windowIcon().actualSize(QSize(48, 48), QIcon::Normal, QIcon::On);
 //    //this->setWindowIcon(QPixmap("Smile.ico"));

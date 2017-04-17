@@ -23,14 +23,20 @@ int aCurUserRole;
 if (aCurUserRole == -1) //А если все-таки делегат для конкретной ячейки, тогда узнаю из нее, какой нужен
     aCurUserRole = aCellDelegate.value(index,0);
 
-    if (aCurUserRole==1) //чекбокс
+    if (aCurUserRole==dtInputString) //строка ввода
+    {
+        QLineEdit *editor = new QLineEdit(parent);
+        return editor;
+    }
+
+    if (aCurUserRole==dtCheckBox) //чекбокс
     {
         QCheckBox *editor = new QCheckBox(parent);
         connect(editor,SIGNAL(stateChanged(int)),this,SLOT(ChangeComboBoxText(int)));
         return editor;
     }
 
-    if (aCurUserRole==2) //спинбокс
+    if (aCurUserRole==dtSpinBox) //спинбокс
     {
         QSpinBox *editor = new QSpinBox(parent);
         editor->setMinimum(0);
@@ -39,7 +45,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
         return editor;
     }
 
-    if (aCurUserRole==3) //комбобокс
+    if (aCurUserRole==dtComboBox) //комбобокс
     {
         QComboBox *editor = new QComboBox(parent);
 
@@ -60,7 +66,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
             return editor;
     }
 
-    if (aCurUserRole==4) //ввод денег
+    if (aCurUserRole==dtMoney) //ввод денег
     {
         QDoubleSpinBox *editor = new QDoubleSpinBox(parent);
         editor->setMinimum(0.00);
@@ -70,19 +76,19 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
         return editor;
     }
 
-    if (aCurUserRole==5) //ввод дробных и целых чисел
+    if (aCurUserRole==dtRealOrIntNumber) //ввод дробных и целых чисел
     {
         QLineEdit *editor = new QLineEdit(parent);
         return editor;
     }
 
-    if (aCurUserRole==6) //ввод целых чисел
+    if (aCurUserRole==dtIntNumber) //ввод целых чисел
     {
         QLineEdit *editor = new QLineEdit(parent);
         return editor;
     }
 
-    if (aCurUserRole==7) //пустрой делегат, нередактируемый
+    if (aCurUserRole==dtEmpty) //пустрой делегат, нередактируемый
     {
         QLineEdit *editor = new QLineEdit(parent);
         editor->setReadOnly(true);
@@ -104,7 +110,7 @@ int aCurUserRole;
 if (aCurUserRole == -1) //А если все-таки делегат для конкретной ячейки, тогда узнаю из нее, какой нужен
     aCurUserRole = aCellDelegate.value(index,0);
 
-    if (aCurUserRole==0) //строка ввода
+    if (aCurUserRole==dtInputString) //строка ввода
     {
         if (index.model()->data(index, Qt::EditRole).isNull()) return;
         const QString value = index.model()->data(
@@ -113,7 +119,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
         lineEdit->setText(value);
     }
 
-    if (aCurUserRole==1) //чекбокс
+    if (aCurUserRole==dtCheckBox) //чекбокс
     {
         QCheckBox *checkBox = static_cast<QCheckBox*>(editor);
                 if (index.model()->data(index, Qt::EditRole).toInt()!=1)
@@ -128,7 +134,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
                 }
     }
 
-    if (aCurUserRole==2) //спинбокс
+    if (aCurUserRole==dtSpinBox) //спинбокс
     {
         const int value = index.model()->data(index, Qt::EditRole).toInt();
 
@@ -136,7 +142,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
         spinBox->setValue(value);
     }
 
-    if (aCurUserRole==3) //комбобокс
+    if (aCurUserRole==dtComboBox) //комбобокс
     {
         QComboBox *comboBox = static_cast<QComboBox*>(editor);
 
@@ -151,7 +157,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
         comboBox->setCurrentIndex(aIndexes.indexOf(value));
     }
 
-    if (aCurUserRole==4) //ввод денег
+    if (aCurUserRole==dtMoney) //ввод денег
     {
         const double value = index.model()->data(
                              index, Qt::EditRole).toDouble();
@@ -159,7 +165,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
         doubleSpinBox->setValue(value);
     }
 
-    if (aCurUserRole==5) //ввод дробных и целых чисел
+    if (aCurUserRole==dtRealOrIntNumber) //ввод дробных и целых чисел
     {
         if (index.model()->data(index, Qt::EditRole).isNull()) return;
         const QString value = index.model()->data(
@@ -168,7 +174,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
         lineEdit->setText(value);
     }
 
-    if (aCurUserRole==6) //ввод целых чисел
+    if (aCurUserRole==dtIntNumber) //ввод целых чисел
     {
         if (index.model()->data(index, Qt::EditRole).isNull()) return;
         const QString value = index.model()->data(
@@ -177,7 +183,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
         lineEdit->setText(value);
     }
 
-    if (aCurUserRole==7) //пустрой делегат, нередактируемый
+    if (aCurUserRole==dtEmpty) //пустой делегат, нередактируемый
     {
         return;
     }
@@ -195,13 +201,13 @@ int aCurUserRole;
 if (aCurUserRole == -1) //А если все-таки делегат для конкретной ячейки, тогда узнаю из нее, какой нужен
     aCurUserRole = aCellDelegate.value(index,0);
 
-    if (aCurUserRole==0) //строка ввода
+    if (aCurUserRole==dtInputString) //строка ввода
     {
         QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
         model->setData(index, lineEdit->text());
     }
 
-    if (aCurUserRole==1) //чекбокс
+    if (aCurUserRole==dtCheckBox) //чекбокс
     {
         QCheckBox *checkBox = static_cast<QCheckBox*>(editor);
         if (checkBox->isChecked())
@@ -210,7 +216,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
             model->setData(index, "0");
     }
 
-    if (aCurUserRole==2) //спинбокс
+    if (aCurUserRole==dtSpinBox) //спинбокс
     {
         QSpinBox *spinBox = static_cast<QSpinBox*>(editor);
         spinBox->interpretText();
@@ -219,7 +225,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
         model->setData(index, value, Qt::EditRole);
     }
 
-    if (aCurUserRole==3) //комбобокс
+    if (aCurUserRole==dtComboBox) //комбобокс
     {
         QComboBox *comboBox = static_cast<QComboBox*>(editor);
 
@@ -231,14 +237,14 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
 
         model->setData(index, aIndexes.at(comboBox->currentIndex()), Qt::EditRole);
     }
-    if (aCurUserRole==4) //ввод денег
+    if (aCurUserRole==dtMoney) //ввод денег
     {
         QDoubleSpinBox *doubleSpinBox = static_cast<QDoubleSpinBox*>(editor);
         doubleSpinBox->interpretText();
         model->setData(index, doubleSpinBox->text());
     }
 
-    if (aCurUserRole==5) //ввод дробных и целых чисел
+    if (aCurUserRole==dtRealOrIntNumber) //ввод дробных и целых чисел
     {
         QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
 
@@ -252,7 +258,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
         model->setData(index, aValue);
     }
 
-    if (aCurUserRole==6) //ввод целых чисел
+    if (aCurUserRole==dtIntNumber) //ввод целых чисел
     {
         QLineEdit *lineEdit = static_cast<QLineEdit*>(editor);
 
@@ -266,7 +272,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
         model->setData(index, aValue);
     }
 
-    if (aCurUserRole==7) //пустрой делегат, нередактируемый
+    if (aCurUserRole==dtEmpty) //пустрой делегат, нередактируемый
     {
         return;
     }
@@ -289,7 +295,7 @@ int aCurUserRole;
 if (aCurUserRole == -1) //А если все-таки делегат для конкретной ячейки, тогда узнаю из нее, какой нужен
     aCurUserRole = aCellDelegate.value(index,0);
 
-    if (aCurUserRole==0 || aCurUserRole==2 || aCurUserRole==4 || aCurUserRole==5 || aCurUserRole==6) //строка ввода
+    if (aCurUserRole==dtInputString || aCurUserRole==dtSpinBox || aCurUserRole==dtMoney || aCurUserRole==dtRealOrIntNumber || aCurUserRole==dtIntNumber) //строка ввода
     {
      if (option.state & QStyle::State_Editing)
          return; //Передаю управление QLineEdit
@@ -307,7 +313,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
 
     }
 
-    if (aCurUserRole==1) //чекбокс
+    if (aCurUserRole==dtCheckBox) //чекбокс
     {
      if (option.state & QStyle::State_Selected)
         {
@@ -328,7 +334,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
 
     }
 
-    if (aCurUserRole==3) //комбобокс
+    if (aCurUserRole==dtComboBox) //комбобокс
     {
 
      if (option.state & QStyle::State_Editing)
@@ -367,7 +373,7 @@ if (aCurUserRole == -1) //А если все-таки делегат для ко
 
     }
 
-    if (aCurUserRole==7) //пустрой делегат, нередактируемый
+    if (aCurUserRole==dtEmpty) //пустрой делегат, нередактируемый
     {
         return;
     }

@@ -130,7 +130,7 @@
       <item row="0" column="0" colspan="2">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Топливные баки</string>
+         <string>Топливные цистерны</string>
         </property>
        </widget>
       </item>
@@ -262,21 +262,21 @@
       <property name="bottomMargin">
        <number>4</number>
       </property>
-      <item row="1" column="0" colspan="5">
+      <item row="2" column="0" colspan="5">
        <widget class="QTableView" name="tvMeasures">
         <attribute name="horizontalHeaderStretchLastSection">
          <bool>true</bool>
         </attribute>
        </widget>
       </item>
-      <item row="0" column="0">
+      <item row="1" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>Цистерна</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="3">
+      <item row="3" column="3">
        <widget class="QPushButton" name="pbnRemoveMeasure">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -301,7 +301,7 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="3" column="1">
        <widget class="QPushButton" name="pbnAddMeasure">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -326,7 +326,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="4" column="1">
        <widget class="QPushButton" name="pbnRestoreMeasuresList">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -351,7 +351,10 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="3">
+      <item row="1" column="1" colspan="4">
+       <widget class="QLineEdit" name="leTank"/>
+      </item>
+      <item row="4" column="3">
        <widget class="QPushButton" name="pbnSaveMeasuresList">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -376,8 +379,12 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1" colspan="4">
-       <widget class="QLineEdit" name="leTank"/>
+      <item row="0" column="0" colspan="5">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Таблица пересчета массы топлива</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

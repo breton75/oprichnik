@@ -11,5 +11,20 @@
         <file>Minus.ico</file>
         <file>Plus.ico</file>
         <file>Retort.png</file>
+        <file>Anchor.png</file>
+        <file>Config.png</file>
+        <file>Network.png</file>
+        <file>Network1.png</file>
+        <file>Network2.png</file>
+        <file>No.ico</file>
+        <file>Notes.ico</file>
+        <file>Problem.ico</file>
+        <file>Record.ico</file>
+        <file>Red mark.ico</file>
+        <file>Refresh.ico</file>
+        <file>Smile.png</file>
+        <file>Thumbs up.ico</file>
+        <file>Yes.ico</file>
+        <file>Consumer.png</file>
     </qresource>
 </RCC>

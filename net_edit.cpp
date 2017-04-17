@@ -10,9 +10,10 @@ NetEdit::NetEdit(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowModality(Qt::WindowModal);
-    setWindowIcon(QIcon("./Network.png"));
+    setWindowIcon(QIcon(":/Network.png"));
     ui->menubar->setVisible(false);
     ui->statusbar->setVisible(false);
+    ui->chbxAllFields->setVisible(false);
 
     int w = this->width();
     int h = this->height();
@@ -45,7 +46,7 @@ NetEdit::NetEdit(QWidget *parent) :
 
     //ui->frame_2->setVisible(false);
     ui->frameRButtons->setVisible(false); // не готово
-    ui->pbnSaveSensorParams->setVisible(false);
+    //ui->pbnSaveSensorParams->setVisible(false);
     ui->pbnClearSensorParams->setVisible(false);
 
     query =  new QSqlQuery();
@@ -55,7 +56,7 @@ NetEdit::NetEdit(QWidget *parent) :
     currentSensorName = "";
     currentProjectId = 1;
     // индекс скрытого столбца - состояния записи
-    sensors_record_state_idx = 15; // последний столбец
+    colIdx_RecordState = 16; // последний столбец
 
     // стандартные модели
     tvSensorsModel = new QStandardItemModel(ui->tvSensors);
@@ -80,6 +81,7 @@ NetEdit::NetEdit(QWidget *parent) :
             this, SLOT(tvSensorsRowChanged(QModelIndex,QModelIndex)));
 
     // обновление списков
+    updateDataTypes();
     updateSensorTypes();
     updateTanksList();
     updateConsumersList();
@@ -116,11 +118,14 @@ void NetEdit::makeSensorsListCommon()
         "  s.id, "\
         "  st.description || ' - ' || coalesce(t.name, c.name) as sensor_name,"\
         "  s.sensor_type, st.name as sensor_type_name, st.description as sensor_type_desc,"\
+        "  s.data_type, dt.name as data_type_name,"\
         "  s.tank_id, t.name as tank_name,"\
         "  s.consumer_id, c.name as consumer_name,"\
         "  net_address,"\
-        "  net_idx, data_type, lo_val, high_val"\
+        "  net_idx, lo_val, high_val"\
         " FROM sensors s"\
+        "  JOIN data_types dt"\
+        "    ON dt.id = s.data_type"\
         "  JOIN sensor_types st"\
         "    ON st.id = s.sensor_type"\
         "  LEFT JOIN tanks t"\
@@ -130,6 +135,23 @@ void NetEdit::makeSensorsListCommon()
         " WHERE s.project_id = %1"\
         " ORDER BY s.id"\
         ";").arg(currentProjectId);
+    colIdx_RecordState = 16;
+    colIdx_SensorId = 0;
+    colIdx_RecNo = 1;
+    colIdx_SensorName = 2;
+    colIdx_SensorTypeId = 3;
+    colIdx_SensorTypeName = 4;
+    colIdx_SensorTypeDesc = 5;
+    colIdx_TankId = 6;
+    colIdx_TankName = 7;
+    colIdx_ConsumerId = 8;
+    colIdx_ConsumerName = 9;
+    colIdx_NetAddress = 10;
+    colIdx_NetIdx = 11;
+    colIdx_DataTypeId = 12;
+    colIdx_DataTypeName = 13;
+    colIdx_LoVal = 14;
+    colIdx_HiVal = 15;
 
     query->clear();
     if(!query->exec(qry)) {
@@ -148,56 +170,55 @@ void NetEdit::makeSensorsListCommon()
 
     tvSensorsModel->clear();
     tvSensorsModel->setColumnCount(colCount + 2); // данные плюс состояние плюс номер записи с индикацией состояния
+    //colIdx_RecordState = tvSensorsModel->columnCount() - 1;
     tvSensorsModel->setRowCount(n);
-    tvSensorsModel->setHorizontalHeaderLabels(QStringList() << "ИД" << "№" << "Датчик" << "ИД типа датчика" << "Тип датчика" << "Описание"
+    tvSensorsModel->setHorizontalHeaderLabels(QStringList() << "ИД" << "№" << "Датчик"
+                                              << "ИД типа датчика" << "Тип датчика" << "Описание"
                                               << "ИД цистерны" << "Цистерна"
                                               << "ИД потребителя" << "Потребитель"
                                               << "Сетевой адрес" << "Индекс на ПИ"
-                                              << "Тип данных" << "MIN значение" << "MAX значение" << "Сост.записи");
-    //int i;
+                                              << "ИД типа данных" << "Тип данных"
+                                              << "MIN значение" << "MAX значение" << "Сост.записи");
+    int i;
     //for(int i = 0; i < colCount + 2; i++) tvSensorsModel->horizontalHeaderItem(i)->setTextAlignment(Qt::AlignCenter); // вылетает с ошибкой - Segmentation fault
     tvSensorsModel->horizontalHeaderItem(1)->setTextAlignment(Qt::AlignCenter); // а так - не вылетает
     tvSensorsModel->horizontalHeaderItem(2)->setTextAlignment(Qt::AlignCenter);
     if(n <= 0) {
-        qDebug() << "Список датчиков пуст, выходим";
+        //qDebug() << "Список датчиков пуст, выходим";
+        ui->tvSensors->hideColumn(0);// ИД
+        if(!ui->chbxAllFields->isChecked()) for (i = 3; i < tvSensorsModel->columnCount(); ++i) ui->tvSensors->hideColumn(i);
         clearSensorParams();
         return;
     }
 
     // заполнить модель
-    int i = -1;
+    i = -1;
     while (query->next()) {
         i++;
-
-        // поля:
-        // id, sensor_name, sensor_type, sensor_type_name, sensor_type_desc,
-        // tank_id, tank_name, consumer_id, consumer_name,
-        // net_address, net_idx, data_type, lo_val, high_val
-        // + record_state
-
-        tvSensorsModel->setItem(i, 0, new QStandardItem(query->value("id").toString()));
+        tvSensorsModel->setItem(i, colIdx_SensorId, new QStandardItem(query->value("id").toString()));
         // столбец 1 - номер записи с индикацией состояния записи
-        tvSensorsModel->setItem(i, 2, new QStandardItem(query->value("sensor_name").toString()));
-        tvSensorsModel->setItem(i, 3, new QStandardItem(query->value("sensor_type").toString()));
-        tvSensorsModel->setItem(i, 4, new QStandardItem(query->value("sensor_type_name").toString()));
-        tvSensorsModel->setItem(i, 5, new QStandardItem(query->value("sensor_type_desc").toString()));
-        tvSensorsModel->setItem(i, 6, new QStandardItem(query->value("tank_id").toString()));
-        tvSensorsModel->setItem(i, 7, new QStandardItem(query->value("tank_name").toString()));
-        tvSensorsModel->setItem(i, 8, new QStandardItem(query->value("consumer_id").toString()));
-        tvSensorsModel->setItem(i, 9, new QStandardItem(query->value("consumer_name").toString()));
-        tvSensorsModel->setItem(i, 10, new QStandardItem(query->value("net_address").toString()));
-        tvSensorsModel->setItem(i, 11, new QStandardItem(query->value("net_idx").toString()));
-        tvSensorsModel->setItem(i, 12, new QStandardItem(query->value("data_type").toString()));
-        tvSensorsModel->setItem(i, 13, new QStandardItem(query->value("lo_val").toString()));
-        tvSensorsModel->setItem(i, 14, new QStandardItem(query->value("high_val").toString()));
-        tvSensorsModel->setItem(i, 15, new QStandardItem(tr("%1").arg(rsUnchanged)));
+        tvSensorsModel->setItem(i, colIdx_SensorName, new QStandardItem(query->value("sensor_name").toString()));
+        tvSensorsModel->setItem(i, colIdx_SensorTypeId, new QStandardItem(query->value("sensor_type").toString()));
+        tvSensorsModel->setItem(i, colIdx_SensorTypeName, new QStandardItem(query->value("sensor_type_name").toString()));
+        tvSensorsModel->setItem(i, colIdx_SensorTypeDesc, new QStandardItem(query->value("sensor_type_desc").toString()));
+        tvSensorsModel->setItem(i, colIdx_TankId, new QStandardItem(query->value("tank_id").toString()));
+        tvSensorsModel->setItem(i, colIdx_TankName, new QStandardItem(query->value("tank_name").toString()));
+        tvSensorsModel->setItem(i, colIdx_ConsumerId, new QStandardItem(query->value("consumer_id").toString()));
+        tvSensorsModel->setItem(i, colIdx_ConsumerName, new QStandardItem(query->value("consumer_name").toString()));
+        tvSensorsModel->setItem(i, colIdx_NetAddress, new QStandardItem(query->value("net_address").toString()));
+        tvSensorsModel->setItem(i, colIdx_NetIdx, new QStandardItem(query->value("net_idx").toString()));
+        tvSensorsModel->setItem(i, colIdx_DataTypeId, new QStandardItem(query->value("data_type").toString()));
+        tvSensorsModel->setItem(i, colIdx_DataTypeName, new QStandardItem(query->value("data_type_name").toString()));
+        tvSensorsModel->setItem(i, colIdx_LoVal, new QStandardItem(query->value("lo_val").toString()));
+        tvSensorsModel->setItem(i, colIdx_HiVal, new QStandardItem(query->value("high_val").toString()));
+        tvSensorsModel->setItem(i, colIdx_RecordState, new QStandardItem(tr("%1").arg(rsUnchanged)));
 
         QStandardItem* si = new QStandardItem(tr("%1").arg(i + 1));
         si->setToolTip(tr("Запись %1").arg(i + 1));
         si->setData(QIcon(":/Apply.ico"), Qt::DecorationRole);
         si->setIcon(QIcon(":/Apply.ico"));
         //tvSensorsModel->setVerticalHeaderItem(i, si); // это работает только у TableView, у TreeView - игнорируется
-        tvSensorsModel->setItem(i, 1, si);
+        tvSensorsModel->setItem(i, colIdx_RecNo, si);
     }
     tvSensorsSelectionModel->reset();
     ui->tvSensors->setSelectionModel(tvSensorsSelectionModel);
@@ -256,28 +277,31 @@ void NetEdit::updateSensorsList()
 void NetEdit::addSensor()
 {
     int n = tvSensorsModel->rowCount();
-    tvSensorsModel->appendRow(QList<QStandardItem*>()
-                      << new QStandardItem("-1") // id
-                      << new QStandardItem("")   // sensor_name
-                      << new QStandardItem("-1") // sensor_type
-                      << new QStandardItem("")   // sensor_type_name
-                      << new QStandardItem("")   // sensor_type_desc
-                      << new QStandardItem("-1") // tank_id
-                      << new QStandardItem("")   // tank_name
-                      << new QStandardItem("-1") // consumer_id
-                      << new QStandardItem("")   // consumer_name
-                      << new QStandardItem("-1") // net_address
-                      << new QStandardItem("0")  // net_idx
-                      << new QStandardItem("-1") // data_type
-                      << new QStandardItem("0")  // lo_val
-                      << new QStandardItem("0")  // high_val
-                      << new QStandardItem(tr("%1").arg(rsAdded))); //record_state
 
     QStandardItem* si = new QStandardItem(tr("%1").arg(n + 1));
     si->setToolTip(tr("Запись %1 добавлена").arg(n + 1));
     si->setData(QIcon(":/Plus.ico"), Qt::DecorationRole);
-    tvSensorsModel->setVerticalHeaderItem(n, si);
+
+    tvSensorsModel->appendRow(QList<QStandardItem*>()
+                      << new QStandardItem("-1") // 0= id
+                      << si // new QStandardItem("0")  //1= record number
+                      << new QStandardItem("")   //2= sensor_name
+                      << new QStandardItem("-1") //3= sensor_type
+                      << new QStandardItem("")   //4= sensor_type_name
+                      << new QStandardItem("")   //5= sensor_type_desc
+                      << new QStandardItem("-1") //6= tank_id
+                      << new QStandardItem("")   //7= tank_name
+                      << new QStandardItem("-1") //8= consumer_id
+                      << new QStandardItem("")   //9= consumer_name
+                      << new QStandardItem("-1") //10= net_address
+                      << new QStandardItem("0")  //11= net_idx
+                      << new QStandardItem("-1") //12= data_type
+                      << new QStandardItem("")   //13= data_type_name
+                      << new QStandardItem("1")  //14= lo_val
+                      << new QStandardItem("2")  //15= high_val
+                      << new QStandardItem(tr("%1").arg(rsAdded))); //16=record_state
     tvSensorsModel->submit();
+    tvSensorsSelectionModel->reset();
 
     ui->tvSensors->setCurrentIndex(tvSensorsModel->index(n, 1));
     //ui->tvSensors->setFocus();
@@ -294,29 +318,29 @@ void NetEdit::addSensor()
 void NetEdit::removeSensor()
 {
     int r = ui->tvSensors->currentIndex().row();
-    int recordState = tvSensorsModel->item(r, sensors_record_state_idx)->data(Qt::DisplayRole).toInt();
+    int recordState = tvSensorsModel->item(r, colIdx_RecordState)->data(Qt::DisplayRole).toInt();
     if(recordState != rsDeleted) { // удаление
-        tvSensorsModel->item(r, sensors_record_state_idx)->setData(rsDeleted, Qt::DisplayRole);
+        tvSensorsModel->item(r, colIdx_RecordState)->setData(rsDeleted, Qt::DisplayRole);
 //        tvSensorsModel->verticalHeaderItem(r)->setData(QIcon(":/Minus.ico"), Qt::DecorationRole);
 //        tvSensorsModel->verticalHeaderItem(r)->setToolTip(tr("Запись %1 удалена").arg(r + 1));
-        tvSensorsModel->item(r, 1)->setData(QIcon(":/Minus.ico"), Qt::DecorationRole);
         tvSensorsModel->item(r, 1)->setToolTip(tr("Запись %1 удалена").arg(r + 1));
+        tvSensorsModel->item(r, 1)->setData(QIcon(":/Minus.ico"), Qt::DecorationRole);
         ui->pbnRemoveSensor->setText("Отменить");
         ui->pbnRemoveSensor->setToolTip("Отменить удаление записи");
         ui->pbnRemoveSensor->setStatusTip("Отменить удаление записи");
     } else { // восстановление
-        if(tvSensorsModel->item(r, 0)->data(Qt::DisplayRole).toInt() < 0) { // элемент добавлен в список
-            tvSensorsModel->item(r, sensors_record_state_idx)->setData(rsAdded, Qt::DisplayRole);
+        if(tvSensorsModel->item(r, colIdx_SensorId)->data(Qt::DisplayRole).toInt() < 0) { // элемент добавлен в список
+            tvSensorsModel->item(r, colIdx_RecordState)->setData(rsAdded, Qt::DisplayRole);
             //tvSensorsModel->verticalHeaderItem(r)->setData(QIcon(":/Plus.ico"), Qt::DecorationRole);
             //tvSensorsModel->verticalHeaderItem(r)->setToolTip(tr("Запись %1 добавлена").arg(r + 1));
-            tvSensorsModel->item(r, 1)->setData(QIcon(":/Plus.ico"), Qt::DecorationRole);
-            tvSensorsModel->item(r, 1)->setToolTip(tr("Запись %1 добавлена").arg(r + 1));
+            tvSensorsModel->item(r, colIdx_RecNo)->setData(QIcon(":/Plus.ico"), Qt::DecorationRole);
+            tvSensorsModel->item(r, colIdx_RecNo)->setToolTip(tr("Запись %1 добавлена").arg(r + 1));
         } else { // элемент уже был в списке
-            tvSensorsModel->item(r, sensors_record_state_idx)->setData(rsChanged, Qt::DisplayRole);
+            tvSensorsModel->item(r, colIdx_RecordState)->setData(rsChanged, Qt::DisplayRole);
             //tvSensorsModel->verticalHeaderItem(r)->setData(QIcon(":/Modify.ico"), Qt::DecorationRole);
             //tvSensorsModel->verticalHeaderItem(r)->setToolTip(tr("Запись %1 изменена").arg(r + 1));
-            tvSensorsModel->item(r, 1)->setData(QIcon(":/Modify.ico"), Qt::DecorationRole);
-            tvSensorsModel->item(r, 1)->setToolTip(tr("Запись %1 изменена").arg(r + 1));
+            tvSensorsModel->item(r, colIdx_RecNo)->setData(QIcon(":/Modify.ico"), Qt::DecorationRole);
+            tvSensorsModel->item(r, colIdx_RecNo)->setToolTip(tr("Запись %1 изменена").arg(r + 1));
         }
         ui->pbnRemoveSensor->setText("Удалить");
         ui->pbnRemoveSensor->setToolTip("Удалить запись");
@@ -327,8 +351,7 @@ void NetEdit::removeSensor()
 
 void NetEdit::saveSensors()
 {
-/*
-    int n = tvConsumersModel->rowCount();
+    int n = tvSensorsModel->rowCount();
     if(n == 0) return;
 
     int ri = 0;
@@ -336,55 +359,76 @@ void NetEdit::saveSensors()
     int rd = 0;
     int errCount = 0;
 
-// id, consumer_type, meter_type, name
-    QString qryInsert = "insert into consumers(project_id, consumer_type, meter_type, name) values(:project_id, :consumer_type, :meter_type, :name);";
-    QString qryUpdate = "update consumers set consumer_type = :consumer_type, meter_type = :meter_type, name = :name where id = :id;";// and project_id = :project_id;";
-    QString qryDelete = "delete from consumers where id = :id;";// and project_id = :project_id;";
+    QString qryInsert = tr("insert into sensors(project_id, sensor_type, tank_id, consumer_id, net_address, net_idx, data_type, lo_val, high_val) "\
+                        "values (%1, :sensor_type, :tank_id, :consumer_id, :net_address, :net_idx, :data_type, :lo_val, :high_val);").arg(currentProjectId);
+//    QString qryInsert = "insert into sensors(project_id, data_type, sensor_type, tank_id, consumer_id, net_address, net_idx, data_type, lo_val, high_val) "\
+//                        "values (:project_id, :data_type, :sensor_type, :tank_id, :consumer_id, :net_address, :net_idx, :data_type, :lo_val, :high_val);";
+    QString qryUpdate = "update sensors set sensor_type=:sensor_type, tank_id=:tank_id, consumer_id=:consumer_id, net_address=:net_address, net_idx=:net_idx, "\
+                        "data_type=:data_type, lo_val=:lo_val, high_val=:high_val where id = :id;";
+    QString qryDelete = "delete from sensors where id = :id;";// and project_id = :project_id;";
+    QString tankName, consName;//, tankId, consId;
+    int tankId, consId;
     query->finish();
 
     for (int i = 0; i < n; ++i) {
         bool nothingToDo = false;
-        //int recordState = tvConsumersModel->item(i, 3)->data(Qt::DisplayRole).toInt();
-        //switch (recordState) {
-        switch (tvConsumersModel->item(i, consumer_record_state_idx)->data(Qt::DisplayRole).toInt()) {
+        switch (tvSensorsModel->item(i, colIdx_RecordState)->data(Qt::DisplayRole).toInt()) {
+        //int rs = tvSensorsModel->item(i, sensors_record_state_idx)->data(Qt::DisplayRole).toInt();
+        //switch (rs) {
         case rsAdded:
             ri++;
+            qDebug() << "Insert query:\n" << qryInsert;
             query->prepare(qryInsert);
             query->bindValue(":project_id", currentProjectId);
-            query->bindValue(":consumer_type", tvConsumersModel->item(i, 1)->data(Qt::DisplayRole).toInt());
-            query->bindValue(":meter_type", tvConsumersModel->item(i, 2)->data(Qt::DisplayRole).toInt());
-            query->bindValue(":name", tvConsumersModel->item(i, 3)->data(Qt::DisplayRole).toString().trimmed());
+            query->bindValue(":sensor_type", tvSensorsModel->item(i, colIdx_SensorTypeId)->data(Qt::DisplayRole).toInt());
+            tankId = tvSensorsModel->item(i, colIdx_TankId)->data(Qt::DisplayRole).toInt();
+            tankName = tvSensorsModel->item(i, colIdx_TankName)->data(Qt::DisplayRole).toString().trimmed();
+            if(!tankName.isEmpty()) query->bindValue(":tank_id", tankId);
+            consId = tvSensorsModel->item(i, colIdx_ConsumerId)->data(Qt::DisplayRole).toInt();
+            consName = tvSensorsModel->item(i, colIdx_ConsumerName)->data(Qt::DisplayRole).toString().trimmed();
+            if(!consName.isEmpty()) query->bindValue(":consumer_id", consId);
+            query->bindValue(":net_address", tvSensorsModel->item(i, colIdx_NetAddress)->data(Qt::DisplayRole).toInt());
+            query->bindValue(":net_idx", tvSensorsModel->item(i, colIdx_NetIdx)->data(Qt::DisplayRole).toInt());
+            query->bindValue(":data_type", tvSensorsModel->item(i, colIdx_DataTypeId)->data(Qt::DisplayRole).toInt());
+            query->bindValue(":lo_val", tvSensorsModel->item(i, colIdx_LoVal)->data(Qt::DisplayRole).toFloat());
+            query->bindValue(":high_val", tvSensorsModel->item(i, colIdx_HiVal)->data(Qt::DisplayRole).toFloat());
             break;
         case rsChanged:
             ru++;
             query->prepare(qryUpdate);
-            query->bindValue(":id", tvConsumersModel->item(i, 0)->data(Qt::DisplayRole).toInt());
-            query->bindValue(":consumer_type", tvConsumersModel->item(i, 1)->data(Qt::DisplayRole).toInt());
-            query->bindValue(":meter_type", tvConsumersModel->item(i, 2)->data(Qt::DisplayRole).toInt());
-            //int k = tvConsumersModel->item(i, 2)->data(Qt::DisplayRole).toInt();
-            //query->bindValue(":meter_type", k);
-            query->bindValue(":name", tvConsumersModel->item(i, 3)->data(Qt::DisplayRole).toString().trimmed());
+            query->bindValue(":id", tvSensorsModel->item(i, colIdx_SensorId)->data(Qt::DisplayRole).toInt());
+            query->bindValue(":data_type", tvSensorsModel->item(i, colIdx_DataTypeId)->data(Qt::DisplayRole).toInt());
+            query->bindValue(":sensor_type", tvSensorsModel->item(i, colIdx_SensorTypeId)->data(Qt::DisplayRole).toInt());
+            tankId = tvSensorsModel->item(i, colIdx_TankId)->data(Qt::DisplayRole).toInt();
+            tankName = tvSensorsModel->item(i, colIdx_TankName)->data(Qt::DisplayRole).toString().trimmed();
+            if(!tankName.isEmpty()) query->bindValue(":tank_id", tankId);
+            consId = tvSensorsModel->item(i, colIdx_ConsumerId)->data(Qt::DisplayRole).toInt();
+            consName = tvSensorsModel->item(i, colIdx_ConsumerName)->data(Qt::DisplayRole).toString().trimmed();
+            if(!consName.isEmpty()) query->bindValue(":consumer_id", consId);
+            query->bindValue(":net_address", tvSensorsModel->item(i, colIdx_NetAddress)->data(Qt::DisplayRole).toInt());
+            query->bindValue(":net_idx", tvSensorsModel->item(i, colIdx_NetIdx)->data(Qt::DisplayRole).toInt());
+            query->bindValue(":lo_val", tvSensorsModel->item(i, colIdx_LoVal)->data(Qt::DisplayRole).toFloat());
+            query->bindValue(":high_val", tvSensorsModel->item(i, colIdx_HiVal)->data(Qt::DisplayRole).toFloat());
             break;
         case rsDeleted:
             {
-                int delId = tvConsumersModel->item(i, 0)->data(Qt::DisplayRole).toInt();
+                int delId = tvSensorsModel->item(i, colIdx_SensorId)->data(Qt::DisplayRole).toInt();
                 if (delId < 0) {
                     nothingToDo = true;
                 } else {
                     rd++;
-                    // удалить записи из таблицы расходов
-                    if(!query->exec(tr("delete from consumers_spend where consumer_id = %1").arg(delId))) {
+                    // удалить записи из зависимых (связных) таблиц
+                    if(!query->exec(tr("delete from ... where sensor_id = %1").arg(delId))) {
                         //err_ocuped = true;
                         errCount++;
                         QString errSt = query->lastError().text();
-                        qDebug() << "Ошибка удаления данных о расходах потребителя " << tvConsumersModel->item(i, 3)->data(Qt::DisplayRole).toString().trimmed() << ":";
+                        qDebug() << "Ошибка удаления данных о ... " << tvSensorsModel->item(i, 2)->data(Qt::DisplayRole).toString().trimmed() << ":";
                         qDebug() << errSt;
-                        logMsg(msgError, tr("Ошибка удаления данных о расходах потребителя '%1':<br>%2")
-                                        .arg(tvConsumersModel->item(i, 3)->data(Qt::DisplayRole).toString().trimmed())
+                        logMsg(msgError, tr("Ошибка удаления данных о датчике '%1':<br>%2")
+                                        .arg(tvSensorsModel->item(i, colIdx_SensorName)->data(Qt::DisplayRole).toString().trimmed())
                                         .arg(errSt), ui->teLog);
-                        nothingToDo = true; // не смогли - потребителя не удаляем
-                        // хотя из-за наличия ссылки на нее - и не получится
-
+                        nothingToDo = true; // не смогли - датчик не удаляем
+                        // хотя из-за наличия ссылки на него - и не получится
                     } else {
                         query->prepare(qryDelete);
                         query->bindValue(":id", delId);
@@ -400,18 +444,20 @@ void NetEdit::saveSensors()
         if(nothingToDo) continue;
 
         if (!query->exec()) {
-            //err_ocuped = true;
             errCount++;
             QString errSt = query->lastError().text();
             qDebug() << "Ошибка сохранения данных:";
             qDebug() << errSt;
+            qDebug() << "Текст запроса:";
+            qDebug() << query->lastQuery();
             logMsg(msgError, tr("Ошибка сохранения данных:<br>%1").arg(errSt), ui->teLog);
+            logMsg(msgError, tr("Текст запроса:<br>%1").arg(query->lastQuery()), ui->teLog);
             //break;
         }
         query->finish();
     }
-    tvConsumersModel->submit();
-    QString resultMess = "Обновлены данные списка потребителей<br>";
+    tvSensorsModel->submit();
+    QString resultMess = "Обновлены данные списка датчиков<br>";
     if(ri > 0) resultMess += tr("Добавлено записей: %1'<br>").arg(ri);
     if(ru > 0) resultMess += tr("Обновлено записей: %1'<br>").arg(ru);
     if(rd > 0) resultMess += tr("Удалено записей: %1'<br>").arg(rd);
@@ -419,10 +465,7 @@ void NetEdit::saveSensors()
     if(errCount > 0) //resultMess += tr("При этом возникло ошибок: %1'<br>").arg(errCount);
         logMsg(msgFail, tr("При этом возникло ошибок: %1'<br>").arg(errCount), ui->teLog);
     // обновление основной конфигурации
-    query->exec(tr("update ship_def set consumers_count = %1;").arg(n));
-    updateConsumersList();
-    //qDebug() << "Обновление данных списка потребителей закончено";
-*/
+    updateSensorsList();
 }
 
 void NetEdit::restoreSensors()
@@ -432,12 +475,28 @@ void NetEdit::restoreSensors()
 
 bool NetEdit::validSensorsData()
 {
-    return false;
+    bool vd;
+    for (int i = 0; i < tvSensorsModel->rowCount(); ++i) {
+        vd = (tvSensorsModel->item(i, colIdx_SensorTypeId)->data(Qt::DisplayRole).toInt() >= 0) // sensor_type
+                && ((tvSensorsModel->item(i, colIdx_TankId)->data(Qt::DisplayRole).toInt() >= 0)
+                     || (tvSensorsModel->item(i, colIdx_ConsumerId)->data(Qt::DisplayRole).toInt() >= 0)) // tankId/consId
+                && (tvSensorsModel->item(i, colIdx_NetAddress)->data(Qt::DisplayRole).toInt() >= 0) //net_address
+                && (tvSensorsModel->item(i, colIdx_NetIdx)->data(Qt::DisplayRole).toInt() >= 0) // net_index
+                && (tvSensorsModel->item(i, colIdx_DataTypeId)->data(Qt::DisplayRole).toInt() >= 0) // data_type
+                && (tvSensorsModel->item(i, colIdx_LoVal)->data(Qt::DisplayRole).toFloat()
+                    < tvSensorsModel->item(i, colIdx_HiVal)->data(Qt::DisplayRole).toFloat()); // lo_val < high_val
+        if(!vd) break;
+    }
+    return vd;
 }
 
 void NetEdit::checkSensorsButtons()
 {
-    //
+    bool dataValid = validSensorsData();
+    ui->pbnAddSensor->setEnabled(dataValid);
+    ui->pbnRemoveSensor->setEnabled(tvSensorsSelectionModel->currentIndex().row() >= 0);
+    ui->pbnSaveSensorsList->setEnabled(dataValid);
+    ui->pbnRestoreSensorsList->setEnabled(true);
 }
 
 //-----------------------------------------------------------------
@@ -475,102 +534,95 @@ void NetEdit::setPlaceList()
 void NetEdit::saveSensorParams(int cr)
 {
     if(cr < 0) return;
-//    qDebug() << "current sensor type index: " << ui->cbxSensorTypes->currentIndex()
-//             << ", value: " << cbxSensorTypes.at(ui->cbxSensorTypes->currentIndex())
-//             << ", user data: " << ui->cbxSensorTypes->currentData().toInt(); // совпадает с cbxSensorTypes.at(ui->cbxSensorTypes->currentIndex())
-//    return;
-
-    //int cr = ui->tvSensors->currentIndex().row();
-    // поля:
-    // id, <added: record num,> sensor_name, sensor_type, sensor_type_name, sensor_type_desc,// 0-5
-    // tank_id, tank_name, consumer_id, consumer_name, // 6-9
-    // net_address, net_idx, data_type, lo_val, high_val // 10-14
-    // + record_state // 15
-
     // 2 - sensor_name
-    tvSensorsModel->item(cr, 3)->setData(cbxSensorTypes.at(ui->cbxSensorTypes->currentIndex()), Qt::DisplayRole); // sensor_type // ui->cbxSensorTypes->currentData();
-    tvSensorsModel->item(cr, 4)->setText(ui->cbxSensorTypes->currentText());//, Qt::DisplayRole);// sensor_type_name
-    // 5 - sensor_type_desc - ? и как получить имя датчика: <sensor_type_desc> - <place> ?
+    if(tvSensorsModel->item(cr, colIdx_RecordState)->data(Qt::DisplayRole).toInt() == rsAdded) {
+        QString placeName = ui->rbnTank->isChecked()? ui->cbxTanksList->currentText() : ui->cbxConsumersList->currentText();
+        tvSensorsModel->item(cr, colIdx_SensorName)->setText(ui->cbxSensorTypes->currentText().append(" - ").append(placeName));
+    }
+    tvSensorsModel->item(cr, colIdx_SensorTypeId)->setData(cbxSensorTypes.at(ui->cbxSensorTypes->currentIndex()), Qt::DisplayRole);
+    tvSensorsModel->item(cr, colIdx_SensorTypeName)->setText(ui->cbxSensorTypes->currentText());
 
     if(ui->rbnTank->isChecked()) { // датчик на танке
-        tvSensorsModel->item(cr, 6)->setData(ui->cbxTanksList->currentData(), Qt::DisplayRole); // tank_id
-        tvSensorsModel->item(cr, 7)->setText(ui->cbxTanksList->currentText()); // tank_name
-        tvSensorsModel->item(cr, 8)->setData(0, Qt::DisplayRole); // consumer_id
-        tvSensorsModel->item(cr, 9)->setText(""); // consumer_name
+        tvSensorsModel->item(cr, colIdx_TankId)->setData(ui->cbxTanksList->currentData(), Qt::DisplayRole); // tank_id
+        tvSensorsModel->item(cr, colIdx_TankName)->setText(ui->cbxTanksList->currentText()); // tank_name
+        tvSensorsModel->item(cr, colIdx_ConsumerId)->setData(0, Qt::DisplayRole); // consumer_id
+        tvSensorsModel->item(cr, colIdx_ConsumerName)->setText(""); // consumer_name
     } else { // датчик на потребителе
-        tvSensorsModel->item(cr, 6)->setData(0, Qt::DisplayRole); // tank_id
-        tvSensorsModel->item(cr, 7)->setText(""); // tank_name
-        tvSensorsModel->item(cr, 8)->setData(ui->cbxConsumersList->currentData(), Qt::DisplayRole); // consumer_id
-        tvSensorsModel->item(cr, 9)->setText(ui->cbxConsumersList->currentText()); // consumer_name
+        tvSensorsModel->item(cr, colIdx_TankId)->setData(0, Qt::DisplayRole); // tank_id
+        tvSensorsModel->item(cr, colIdx_TankName)->setText(""); // tank_name
+        tvSensorsModel->item(cr, colIdx_ConsumerId)->setData(ui->cbxConsumersList->currentData(), Qt::DisplayRole); // consumer_id
+        tvSensorsModel->item(cr, colIdx_ConsumerName)->setText(ui->cbxConsumersList->currentText()); // consumer_name
     }
 
-    tvSensorsModel->item(cr, 10)->setText(ui->edAddress->text());   // net_address
-    tvSensorsModel->item(cr, 11)->setText(ui->edIndex->text());     // net_idx
-    // 12 - data_type - ?
-    //tvSensorsModel->item(cr, 13)->setText(ui->edLowVal->text());    // lo_val
-    tvSensorsModel->item(cr, 13)->setData(ui->edLowVal->value(), Qt::DisplayRole);
-    //tvSensorsModel->item(cr, 14)->setText(ui->edHiVal->text());     // high_val
-    tvSensorsModel->item(cr, 14)->setData(ui->edHiVal->value(), Qt::DisplayRole);
+    tvSensorsModel->item(cr, colIdx_NetAddress)->setText(ui->edAddress->text());   // net_address
+    tvSensorsModel->item(cr, colIdx_NetIdx)->setText(ui->edIndex->text());     // net_idx
+    tvSensorsModel->item(cr, colIdx_DataTypeId)->setData(ui->cbxDataTypes->currentIndex() + 1, Qt::DisplayRole);
+    tvSensorsModel->item(cr, colIdx_DataTypeName)->setText(ui->cbxDataTypes->currentText());
+    //tvSensorsModel->item(cr, colIdx_LoVal)->setText(ui->edLowVal->text());    // lo_val
+    tvSensorsModel->item(cr, colIdx_LoVal)->setData(ui->edLowVal->value(), Qt::DisplayRole);
+    //tvSensorsModel->item(cr, colIdx_HiVal)->setText(ui->edHiVal->text());     // high_val
+    tvSensorsModel->item(cr, colIdx_HiVal)->setData(ui->edHiVal->value(), Qt::DisplayRole);
 
-    int rs = tvSensorsModel->item(cr, sensors_record_state_idx)->data(Qt::DisplayRole).toInt();;
+    int rs = tvSensorsModel->item(cr, colIdx_RecordState)->data(Qt::DisplayRole).toInt();;
     if(rs == rsUnchanged) {
-        tvSensorsModel->item(cr, sensors_record_state_idx)->setData(rsChanged);
+        tvSensorsModel->item(cr, colIdx_RecordState)->setData(rsChanged, Qt::DisplayRole);
         tvSensorsModel->item(cr, 1)->setData(QIcon(":/Modify.ico"), Qt::DecorationRole);
         tvSensorsModel->item(cr, 1)->setToolTip(tr("Запись %1 изменена").arg(cr + 1));
+        ui->pbnRemoveSensor->setText("Удалить");
     } else
         if(rs == rsDeleted) {
             logMsg(msgFail, "Запись удалена, при сохранении изменения будут потеряны!", ui->teLog);
+            ui->pbnRemoveSensor->setText("Восстановить");
+        } else {
+            ui->pbnRemoveSensor->setText("Удалить");
         }
 
     ui->pbnSaveSensorsList->setEnabled(true);
     ui->pbnRestoreSensorsList->setEnabled(true);
+    ui->pbnAddSensor->setEnabled(true);
+    ui->pbnRemoveSensor->setEnabled(true);
 }
 
 // восстановить исходные данные датчика
 void NetEdit::restoreSensorParams()
 {
-    fSensorParamsChanged = false;
-    if(currentSensorId < 0) {
+    int cr = ui->tvSensors->currentIndex().row();
+    if(cr < 0) {
         clearSensorParams();
         return;
     }
-
-    int cr = ui->tvSensors->currentIndex().row();
-    // поля:
-    // id, sensor_name, sensor_type, sensor_type_name, sensor_type_desc,// 0-4
-    // tank_id, tank_name, consumer_id, consumer_name, // 5-8
-    // net_address, net_idx, data_type, lo_val, high_val // 9-13
-    // + record_state // 14
-
-
-    int n = tvSensorsModel->item(cr, 3)->data(Qt::DisplayRole).toInt();//tvSensorsModel->item(currentSensorId, 0)->data(Qt::DisplayRole).toInt();;
+    int n = tvSensorsModel->item(cr, colIdx_SensorTypeId)->data(Qt::DisplayRole).toInt();
     n = cbxSensorTypes.indexOf(n);
     if((ui->cbxSensorTypes->count() > 0) && (n >= 0) &&  (n < ui->cbxSensorTypes->count())) ui->cbxSensorTypes->setCurrentIndex(n);
     else ui->cbxSensorTypes->setCurrentIndex(0);
-    QString fVal = tvSensorsModel->item(cr, 7)->data(Qt::DisplayRole).toString().trimmed(); // tank_id
-    bool tankEmpty = fVal.isEmpty();
-    ui->rbnTank->setChecked(!tankEmpty);
-    ui->rbnConsumer->setChecked(tankEmpty);
+    QString fVal = tvSensorsModel->item(cr, colIdx_ConsumerName)->data(Qt::DisplayRole).toString().trimmed();
+    bool consumerEmpty = fVal.isEmpty();
+    ui->rbnTank->setChecked(consumerEmpty);
+    ui->rbnConsumer->setChecked(!consumerEmpty);
     setPlaceList();
-    if(tankEmpty) { // датчик на потребителе
-        fVal = tvSensorsModel->item(cr, 8)->data(Qt::DisplayRole).toString().trimmed();
-        n = fVal.toInt();
-        ui->cbxConsumersList->setCurrentIndex(cbxConsumers.indexOf(n));
+    if(!consumerEmpty) { // датчик на потребителе
+        //fVal = tvSensorsModel->item(cr, colIdx_ConsumerId)->data(Qt::DisplayRole).toString().trimmed();
+        //n = fVal.toInt();
+        ui->cbxConsumersList->setCurrentIndex(cbxConsumers.indexOf(tvSensorsModel->item(cr, colIdx_ConsumerId)->data(Qt::DisplayRole).toInt()));//n));
     } else { // датчик на танке
-        fVal = tvSensorsModel->item(cr, 6)->data(Qt::DisplayRole).toString().trimmed();
-        n = fVal.toInt();
-        ui->cbxTanksList->setCurrentIndex(cbxTanks.indexOf(n));
+        //fVal = tvSensorsModel->item(cr, colIdx_TankId)->data(Qt::DisplayRole).toString().trimmed();
+        //n = fVal.toInt();
+        ui->cbxTanksList->setCurrentIndex(cbxTanks.indexOf(tvSensorsModel->item(cr, colIdx_TankId)->data(Qt::DisplayRole).toInt()));//n));
     }
 
-    ui->edAddress->setValue(tvSensorsModel->item(cr, 10)->data(Qt::DisplayRole).toInt());
-    ui->edIndex->setValue(tvSensorsModel->item(cr, 11)->data(Qt::DisplayRole).toInt());
-    ui->edLowVal->setValue(tvSensorsModel->item(cr, 13)->data(Qt::DisplayRole).toFloat());
-    ui->edHiVal->setValue(tvSensorsModel->item(cr, 14)->data(Qt::DisplayRole).toFloat());
+    ui->edAddress->setValue(tvSensorsModel->item(cr, colIdx_NetAddress)->data(Qt::DisplayRole).toInt());
+    ui->edIndex->setValue(tvSensorsModel->item(cr, colIdx_NetIdx)->data(Qt::DisplayRole).toInt());
+    ui->edLowVal->setValue(tvSensorsModel->item(cr, colIdx_LoVal)->data(Qt::DisplayRole).toFloat());
+    ui->edHiVal->setValue(tvSensorsModel->item(cr, colIdx_HiVal)->data(Qt::DisplayRole).toFloat());
+    fSensorParamsChanged = false;
 }
 
 // проверка корректности данных
 bool NetEdit::validSensorParamsData()
 {
+    bool sensorDeleted = tvSensorsModel->item(tvSensorsSelectionModel->currentIndex().row(), colIdx_RecordState)->data(Qt::DisplayRole) == rsDeleted;
+    if(sensorDeleted) return true;
+
     bool vd = ui->cbxSensorTypes->currentIndex() >= 0; // корректен тип датчика
     bool val1ok, val2ok; // корректны числовые поля
     int netAddr, netIdx;
@@ -591,26 +643,37 @@ bool NetEdit::validSensorParamsData()
             }
         }
     }
-
     return vd;
 }
 
 // проверка возможности операций
 void NetEdit::checkSensorParamsButtons()
 {
-    //
+    //bool dataValid = validSensorParamsData();
+    //ui->pbnAddSensor->setEnabled(dataValid);
 }
 
-// установка значений редакторов
-//void NetEdit::setEditValues()
-//{
-//    if(currentSensorId < 0) {
-//        clearSensorParams();
-//        return;
-//    }
-//}
-
 //-----------------------------------------------------------------
+void NetEdit::updateDataTypes()
+{
+    query->clear();
+    if(!query->exec("SELECT id, name FROM data_types ORDER BY 1;")) {
+        logMsg(msgError, tr("Ошибка обновления списка типов данных:<br>%1").arg(query->lastError().text()), ui->teLog);
+        qDebug() << "Ошибка обновления списка типов данных:";
+        qDebug() << query->lastError().text();
+        return;
+    }
+    int n = query->size();
+    ui->cbxDataTypes->clear(); // комбо-бокс
+    cbxDataTypes.clear(); // список индексов по-порядку
+    while (query->next()) {
+        int idVal = query->value("id").toInt();
+        ui->cbxDataTypes->addItem(query->value("name").toString(), idVal);
+        cbxDataTypes << idVal;
+    }
+    if(n > 0) ui->cbxSensorTypes->setCurrentIndex(0);
+}
+
 void NetEdit::updateSensorTypes()
 {
     int c = ui->cbxSensorTypes->currentIndex();
@@ -674,8 +737,12 @@ void NetEdit::refTableChanged(QString refTableName)
 {
     if(refTableName == "sensor_types") {
         updateSensorTypes();
-        if(this->isVisible()) updateSensorsList();
-    }
+    } else
+    if(refTableName == "data_types") {
+        updateDataTypes();
+    } else return;
+
+    if(this->isVisible()) updateSensorsList();
 }
 
 // смена датчика в списке - обновление параметров и проверка - удален / нет
@@ -685,11 +752,16 @@ void NetEdit::tvSensorsRowChanged(QModelIndex idxCurrent, QModelIndex idxPrev)
         saveSensorParams(idxPrev.row());
     }
     //qDebug() << "tvSensorsRowChanged from " << idxPrev.row() << " to " << idxCurrent.row() << ", current row: " << ui->tvSensors->currentIndex().row();
-    currentSensorId = tvSensorsModel->data(tvSensorsModel->index(idxCurrent.row(), 0), Qt::DisplayRole).toInt();
-    currentSensorName = tvSensorsModel->data(tvSensorsModel->index(idxCurrent.row(), 1), Qt::DisplayRole).toInt();
+    currentSensorId = tvSensorsModel->data(tvSensorsModel->index(idxCurrent.row(), colIdx_SensorId), Qt::DisplayRole).toInt();
+    currentSensorName = tvSensorsModel->data(tvSensorsModel->index(idxCurrent.row(), colIdx_SensorName), Qt::DisplayRole).toInt();
 
     int r = ui->tvSensors->currentIndex().row();
-    int recordState = tvSensorsModel->item(r, sensors_record_state_idx)->data(Qt::DisplayRole).toInt();
+    //qDebug() << "model row count: " << tvSensorsModel->rowCount() << "current index row: " << r;
+    //int recordState = tvSensorsModel->item(r, sensors_record_state_idx)->data(Qt::DisplayRole).toInt();
+    QStandardItem* ci = tvSensorsModel->item(r, colIdx_RecordState);
+    int recordState;
+    if(ci) recordState = ci->data(Qt::DisplayRole).toInt();
+    else recordState = rsAdded;
     //qDebug() << "tvSensorsRowChanged to " << r << ", record state index: " << sensors_record_state_idx << ", record state value: " << recordState;
     if(recordState == rsDeleted) { // удален
         ui->pbnRemoveSensor->setText("Отменить");
@@ -702,6 +774,7 @@ void NetEdit::tvSensorsRowChanged(QModelIndex idxCurrent, QModelIndex idxPrev)
     }
 
     restoreSensorParams();
+    checkSensorsButtons();
     return;
     qDebug() << idxPrev;
 }

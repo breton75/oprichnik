@@ -7,6 +7,7 @@
 #include "u_log.h"
 #include "universaldelegate.h"
 //#include "read_only_table_col.h"
+//#include "mainwindow.h"
 
 RefEdit::RefEdit(QWidget *parent) :
     QMainWindow(parent),
@@ -15,7 +16,7 @@ RefEdit::RefEdit(QWidget *parent) :
     ui->setupUi(this);
     ui->tvRefList->setEditTriggers(QAbstractItemView::NoEditTriggers);
     setWindowModality(Qt::WindowModal);
-    this->setWindowIcon(QIcon("./Notes.ico"));
+    this->setWindowIcon(QIcon(":/Notes.ico"));
 
     ui->frame_1->setLayout(ui->verticalLayout);
     ui->frame_2->setLayout(ui->gridLayout);
@@ -425,5 +426,12 @@ void RefEdit::refContentItemChanged(QStandardItem *item)
     }
     checkRefsButtons();
 }
+
+//void RefEdit::closeThis()
+//{
+//    this->close();
+//    this->destroy();
+//    this->~RefEdit();
+//}
 
 //====================================================================

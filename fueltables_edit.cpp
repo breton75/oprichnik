@@ -11,6 +11,7 @@ FuelTables::FuelTables(QWidget *parent) :
     // форма
     ui->setupUi(this);
     setWindowModality(Qt::WindowModal);
+    setWindowIcon(QIcon(":/List.ico"));
 
     ui->frame_1->setLayout(ui->glFuelsList);
     ui->frame_2->setLayout(ui->glRecalc);
